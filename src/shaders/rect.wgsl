@@ -16,7 +16,7 @@ struct VSOutput {
 @vertex
 fn vs_main(input: VertexInput) -> VSOutput {
     var out: VSOutput;
-    out.clip_pos = u_transform * vec4<f32>(input.position, 0.0, 1.0);
+    out.clip_pos = u_transform.transform * vec4<f32>(input.position, 0.0, 1.0);
     out.color = input.color;
     return out;
 }

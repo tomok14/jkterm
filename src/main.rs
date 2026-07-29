@@ -123,6 +123,13 @@ fn handle_key_input(writer: &mut pty::PtyWriter, event: KeyEvent) {
         }
     }
 
+    if let Key::Character(ch) = &event.logical_key {
+        if !ch.is_empty() {
+            let _ = writer.write(ch.as_bytes());
+            return;
+        }
+    }
+
     let bytes: Option<Vec<u8>> = match event.logical_key {
         Key::Named(NamedKey::Enter) => Some(vec![b'\r']),
         Key::Named(NamedKey::Backspace) => Some(vec![0x7f]),
