@@ -19,7 +19,7 @@ impl Default for Config {
             rows: 24,
             cols: 80,
             font_size: 14.0,
-            font_family: "JetBrains Mono, Fira Code, Iosevka, monospace".into(),
+            font_family: "Noto Sans Mono CJK JP, JetBrainsMonoNL Nerd Font, JetBrains Mono, Fira Code, Iosevka, monospace".into(),
             shell: std::env::var("SHELL").unwrap_or_else(|_| "/bin/sh".into()),
             background: [0.04, 0.04, 0.06, 1.0],
             foreground: [0.93, 0.93, 0.95, 1.0],

@@ -38,6 +38,7 @@ pub struct Renderer {
     padding_x: f64,
     padding_y: f64,
     font_size: f32,
+    font_family: String,
     format: wgpu::TextureFormat,
 
     rect_pipeline: wgpu::RenderPipeline,
@@ -217,6 +218,7 @@ impl Renderer {
             padding_x: config.padding_x,
             padding_y: config.padding_y,
             font_size,
+            font_family: config.font_family.clone(),
             format,
             rect_pipeline,
             rect_vertex_buf,
@@ -399,7 +401,7 @@ impl Renderer {
                     &mut self.font_system,
                     &text,
                     Attrs::new()
-                        .family(Family::Monospace)
+                        .family(resolve_family(&self.font_family))
                         .color(Color::rgb(0xCC, 0xCC, 0xCC)),
                     Shaping::Basic,
                 );
@@ -455,4 +457,18 @@ impl Renderer {
         frame.present();
         self.atlas.trim();
     }
+}
+
+fn resolve_family(families: &str) -> Family<'_> {
+    families.split(',')
+        .next()
+        .map(|s| s.trim())
+        .filter(|s| !s.is_empty())
+        .map(|name| match name.to_ascii_lowercase() {
+            ref n if n == "monospace" => Family::Monospace,
+            ref n if n == "sans-serif" => Family::SansSerif,
+            ref n if n == "serif" => Family::Serif,
+            _ => Family::Name(name),
+        })
+        .unwrap_or(Family::Monospace)
 }

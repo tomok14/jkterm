@@ -9,7 +9,7 @@ use std::thread;
 
 use winit::event::{ElementState, Event, KeyEvent, WindowEvent};
 use winit::event_loop::EventLoop;
-use winit::keyboard::{Key, NamedKey};
+use winit::keyboard::{Key, ModifiersState, NamedKey};
 use winit::window::Window;
 
 use crate::config::Config;
@@ -49,6 +49,7 @@ fn main() {
 
     let (mut pty_reader, mut pty_writer) = pty::spawn(&config, cw, ch);
     let proxy = event_loop.create_proxy();
+    let mut modifiers = ModifiersState::default();
 
     // Start PTY reader thread
     thread::spawn(move || {
@@ -88,7 +89,10 @@ fn main() {
                     unsafe { (*terminal_ptr).clear_dirty(); }
                 }
                 WindowEvent::KeyboardInput { event, .. } => {
-                    handle_key_input(&mut pty_writer, event);
+                    handle_key_input(&mut pty_writer, &modifiers, event);
+                }
+                WindowEvent::ModifiersChanged(m) => {
+                    modifiers = m.state();
                 }
                 WindowEvent::Focused(_) => {}
                 _ => {}
@@ -111,9 +115,21 @@ fn main() {
     }).unwrap();
 }
 
-fn handle_key_input(writer: &mut pty::PtyWriter, event: KeyEvent) {
+fn handle_key_input(writer: &mut pty::PtyWriter, modifiers: &ModifiersState, event: KeyEvent) {
     if event.state != ElementState::Pressed {
         return;
+    }
+
+    if modifiers.control_key() {
+        if let Key::Character(ch) = &event.logical_key {
+            if let Some(&b) = ch.as_bytes().first() {
+                let c = b.to_ascii_lowercase();
+                if c.is_ascii_lowercase() {
+                    let _ = writer.write(&[c - b'a' + 1]);
+                    return;
+                }
+            }
+        }
     }
 
     if let Some(text) = event.text {
